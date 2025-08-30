@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق السعرات الحرارية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4CAF50">
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f9f9f9;
+        }
+        header {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        header .material-icons {
+            font-size: 28px;
+        }
+        .container {
+            padding: 15px;
+        }
+        .section {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin: 0 0 10px;
+            font-size: 20px;
+            color: #333;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background: #43a047;
+        }
+        .list {
+            margin-top: 10px;
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 5px;
+        }
+        .summary {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <span class="material-icons">restaurant</span>
+    تطبيق السعرات الحرارية
+</header>
+
+<div class="container">
+    <div class="section">
+        <h2>إضافة وجبة</h2>
+        <input type="text" id="foodName" placeholder="اسم الوجبة">
+        <input type="number" id="foodWeight" placeholder="الوزن (جرام)">
+        <button onclick="addFood()">إضافة الوجبة</button>
+    </div>
+
+    <div class="section">
+        <h2>إضافة تمرين</h2>
+        <input type="text" id="exerciseName" placeholder="اسم التمرين">
+        <input type="number" id="exerciseTime" placeholder="المدة (دقائق)">
+        <button onclick="addExercise()">إضافة التمرين</button>
+    </div>
+
+    <div class="section">
+        <h2>الوجبات</h2>
+        <div id="foodList" class="list"></div>
+    </div>
+
+    <div class="section">
+        <h2>التمارين</h2>
+        <div id="exerciseList" class="list"></div>
+    </div>
+
+    <div class="summary">
+        <p>المستهلكة: <span id="totalFood">0</span> سعرة</p>
+        <p>المحروقة: <span id="totalExercise">0</span> سعرة</p>
+        <p><strong>الصافي: <span id="netCalories">0</span> سعرة</strong></p>
+    </div>
+</div>
+
+<script>
+    const foods = {
+        "أرز": 130, "دجاج": 239, "بيض": 155, "تفاح": 52, "خبز": 265, "بطاطس": 77,
+        "لحم بقري": 250, "سمك": 206, "جبن": 402, "حليب": 42, "مكرونة": 131,
+        "طماطم": 18, "خيار": 16, "جزر": 41, "موز": 89, "تمر": 277,
+        "عدس": 116, "فول": 110, "حمص": 164, "شوفان": 389, "زيت زيتون": 884
+    };
+
+    const exercises = {
+        "مشي": 280, "جري": 600, "دراجة": 500, "سباحة": 700, "قفز حبل": 800,
+        "تمارين القوة": 400, "يوغا": 200, "بيلاتس": 250, "كرة قدم": 600,
+        "كرة سلة": 550
+    };
+
+    let foodList = JSON.parse(localStorage.getItem("foods")) || [];
+    let exerciseList = JSON.parse(localStorage.getItem("exercises")) || [];
+
+    function addFood() {
+        const name = document.getElementById('foodName').value;
+        const weight = parseInt(document.getElementById('foodWeight').value);
+        if (!name || !weight) return alert("أدخل اسم الوجبة والوزن");
+        let caloriesPer100 = foods[name] || 0;
+        if (caloriesPer100 === 0) return alert("هذه الوجبة غير موجودة في القاعدة");
+        let calories = (caloriesPer100 * weight) / 100;
+        foodList.push({ name, weight, calories: Math.round(calories) });
+        localStorage.setItem("foods", JSON.stringify(foodList));
+        renderLists();
+    }
+
+    function addExercise() {
+        const name = document.getElementById('exerciseName').value;
+        const time = parseInt(document.getElementById('exerciseTime').value);
+        if (!name || !time) return alert("أدخل اسم التمرين والمدة");
+        let caloriesPerHour = exercises[name] || 0;
+        if (caloriesPerHour === 0) return alert("هذا التمرين غير موجود في القاعدة");
+        let calories
